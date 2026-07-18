@@ -115,7 +115,7 @@ export const updateCustomer = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ id: z.number() }).and(CustomerInput.partial()).parse(d))
   .handler(async ({ data, context }) => {
     const { id, ...rest } = data;
-    const dbData: Record<string, unknown> = {};
+    const dbData: Record<string, string | null> = {};
     const mapping: Record<string, string> = {
       name: "name", email: "email", phone: "phone", pan: "pan", address: "address",
       oldAccountNumber: "old_account_number", newAccountNumber: "new_account_number",
@@ -123,8 +123,8 @@ export const updateCustomer = createServerFn({ method: "POST" })
       emiAmount: "emi_amount", tenure: "tenure", nextEmiDate: "next_emi_date",
       moratiumStartDate: "moratium_start_date", moratiumEndDate: "moratium_end_date",
     };
-    for (const [k, v] of Object.entries(rest)) if (v !== undefined && mapping[k]) dbData[mapping[k]] = v;
-    const { error } = await context.supabase.from("customers").update(dbData).eq("id", id);
+    for (const [k, v] of Object.entries(rest)) if (v !== undefined && mapping[k]) dbData[mapping[k]] = (v as string | null);
+    const { error } = await (context.supabase.from("customers") as unknown as { update: (d: Record<string, unknown>) => { eq: (c: string, v: number) => Promise<{ error: { message: string } | null }> } }).update(dbData).eq("id", id);
     if (error) throw new Error(error.message);
     return { success: true };
   });
@@ -205,12 +205,9 @@ export const updateSerialCounter = createServerFn({ method: "POST" })
     return { success: true };
   });
 
-async function fetchDoc(supabase: NonNullable<Parameters<typeof requireSupabaseAuth extends never ? never : (c: { supabase: unknown }) => void> extends never ? never : never>, id: number): Promise<CustomerDoc> {
-  throw new Error("unused"); // placeholder
-}
-// Reuse inline
-async function loadCustomer(context: { supabase: { from: (t: string) => { select: (c: string) => { eq: (c: string, v: number) => { maybeSingle: () => Promise<{ data: DbRow | null; error: unknown }> } } } } }, id: number): Promise<CustomerDoc> {
-  const { data } = await context.supabase.from("customers").select("*").eq("id", id).maybeSingle();
+async function loadCustomer(context: { supabase: unknown }, id: number): Promise<CustomerDoc> {
+  const sb = context.supabase as { from: (t: string) => { select: (c: string) => { eq: (c: string, v: number) => { maybeSingle: () => Promise<{ data: DbRow | null }> } } } };
+  const { data } = await sb.from("customers").select("*").eq("id", id).maybeSingle();
   if (!data) throw new Error("Customer not found");
   return mapRow(data);
 }
