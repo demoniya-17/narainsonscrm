@@ -14,16 +14,217 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          address: string | null
+          app_name: string | null
+          created_at: string
+          email: string
+          emi_amount: string | null
+          id: number
+          moratium_end_date: string | null
+          moratium_start_date: string | null
+          name: string
+          new_account_number: string | null
+          next_emi_date: string | null
+          old_account_number: string
+          otp_verified: number
+          pan: string | null
+          pending_amount: string | null
+          phone: string | null
+          serial_number: string | null
+          status: string
+          tenure: string | null
+          updated_at: string
+          verified_otp: string | null
+        }
+        Insert: {
+          address?: string | null
+          app_name?: string | null
+          created_at?: string
+          email: string
+          emi_amount?: string | null
+          id?: number
+          moratium_end_date?: string | null
+          moratium_start_date?: string | null
+          name: string
+          new_account_number?: string | null
+          next_emi_date?: string | null
+          old_account_number: string
+          otp_verified?: number
+          pan?: string | null
+          pending_amount?: string | null
+          phone?: string | null
+          serial_number?: string | null
+          status?: string
+          tenure?: string | null
+          updated_at?: string
+          verified_otp?: string | null
+        }
+        Update: {
+          address?: string | null
+          app_name?: string | null
+          created_at?: string
+          email?: string
+          emi_amount?: string | null
+          id?: number
+          moratium_end_date?: string | null
+          moratium_start_date?: string | null
+          name?: string
+          new_account_number?: string | null
+          next_emi_date?: string | null
+          old_account_number?: string
+          otp_verified?: number
+          pan?: string | null
+          pending_amount?: string | null
+          phone?: string | null
+          serial_number?: string | null
+          status?: string
+          tenure?: string | null
+          updated_at?: string
+          verified_otp?: string | null
+        }
+        Relationships: []
+      }
+      email_logs: {
+        Row: {
+          created_at: string
+          customer_id: number
+          email_type: string
+          error_message: string | null
+          id: number
+          recipient_email: string
+          status: string | null
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_id: number
+          email_type: string
+          error_message?: string | null
+          id?: number
+          recipient_email: string
+          status?: string | null
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_id?: number
+          email_type?: string
+          error_message?: string | null
+          id?: number
+          recipient_email?: string
+          status?: string | null
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      otp_records: {
+        Row: {
+          agreement_type: string
+          created_at: string
+          customer_id: number
+          email: string
+          expires_at: string | null
+          id: number
+          otp: string
+          verified: number
+        }
+        Insert: {
+          agreement_type: string
+          created_at?: string
+          customer_id: number
+          email: string
+          expires_at?: string | null
+          id?: number
+          otp: string
+          verified?: number
+        }
+        Update: {
+          agreement_type?: string
+          created_at?: string
+          customer_id?: number
+          email?: string
+          expires_at?: string | null
+          id?: number
+          otp?: string
+          verified?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "otp_records_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      serial_counters: {
+        Row: {
+          counter_type: string
+          current_value: string
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          counter_type: string
+          current_value: string
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          counter_type?: string
+          current_value?: string
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "staff"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +351,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "staff"],
+    },
   },
 } as const
