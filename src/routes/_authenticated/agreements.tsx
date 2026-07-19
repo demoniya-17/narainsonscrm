@@ -30,7 +30,7 @@ function AgreementsPage() {
   const genRe = useServerFn(generateRestructuring);
   const genMora = useServerFn(generateMoratorium);
 
-  const { data: customers, isLoading } = useQuery({ queryKey: ["customers"], queryFn: () => listFn() });
+  const { data: customers, isLoading, refetch } = useQuery({ queryKey: ["customers"], queryFn: () => listFn() });
 
   const sendOtpMutation = useMutation({
     mutationFn: (v: { customerId: number; email: string; agreementType: string }) => sendOtpFn({ data: v }),
@@ -42,19 +42,36 @@ function AgreementsPage() {
     onError: () => toast.error("Failed to generate OTP"),
   });
 
+  const openDoc = (html: string) => {
+    const w = window.open("", "_blank");
+    if (w) { w.document.write(html); w.document.close(); }
+  };
+
+  const generateFor = (type: AgreementType, customerId: number, otp: string) =>
+    type === "ndc" ? genNdc({ data: { customerId } })
+    : type === "restructuring" ? genRe({ data: { customerId, otp } })
+    : genMora({ data: { customerId, otp } });
+
   const handleVerify = async (type: AgreementType) => {
     if (!selectedId || !otpValue) return toast.error("Enter OTP");
     try {
       await verifyOtpFn({ data: { customerId: selectedId, otp: otpValue } });
-      const result = type === "ndc" ? await genNdc({ data: { customerId: selectedId } })
-        : type === "restructuring" ? await genRe({ data: { customerId: selectedId, otp: otpValue } })
-        : await genMora({ data: { customerId: selectedId, otp: otpValue } });
-      const w = window.open("", "_blank");
-      if (w) { w.document.write(result.html); w.document.close(); }
-      toast.success("Document generated");
+      const result = await generateFor(type, selectedId, otpValue);
+      openDoc(result.html);
+      toast.success("Verified — agreement ready");
       setSelectedId(null); setOtpValue(""); setGeneratedOtp(null);
+      await refetch();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Verification failed");
+    }
+  };
+
+  const handleView = async (type: AgreementType, customerId: number, verifiedOtp: string) => {
+    try {
+      const result = await generateFor(type, customerId, verifiedOtp);
+      openDoc(result.html);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to open agreement");
     }
   };
 
