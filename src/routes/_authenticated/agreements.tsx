@@ -108,8 +108,13 @@ function AgreementsPage() {
                 <td className="px-6 py-3 text-sm">₹{c.pendingAmount || "-"}</td>
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-2 flex-wrap">
+                    {c.otpVerified === 1 && c.verifiedOtp ? (
+                      <Button size="sm" className="btn-gold" onClick={() => handleView(agreementFor(type), c.id, c.verifiedOtp!)}>
+                        <FileText className="w-3.5 h-3.5 mr-1" /> View Agreement
+                      </Button>
+                    ) : null}
                     <Button size="sm" variant="outline" disabled={sendOtpMutation.isPending} onClick={() => sendOtpMutation.mutate({ customerId: c.id, email: c.email, agreementType: agreementFor(type) })}>
-                      <Mail className="w-3.5 h-3.5" /> Send OTP
+                      <Mail className="w-3.5 h-3.5" /> {c.otpVerified === 1 ? "Re-verify" : "Send OTP"}
                     </Button>
                     {selectedId === c.id && (
                       <>
