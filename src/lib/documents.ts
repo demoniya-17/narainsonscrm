@@ -263,14 +263,30 @@ export function generateMoratoriumHtml(customer: CustomerDoc, otp: string): stri
 export function generateTopUpHtml(customer: CustomerDoc, otp: string): string {
   const dateStr = new Date().toLocaleDateString("en-IN");
   const timeStr = new Date().toLocaleTimeString("en-IN");
-  const tenureNum = parseInt(customer.tenure || "12");
+  const tenureNum = Math.max(1, parseInt(customer.tenure || "12"));
+
+  // Top-Up logic: existing loan + equal top-up = combined principal, interest applied on total.
+  const existingLoan = parseFloat((customer.pendingAmount || "0").replace(/[^0-9.]/g, "")) || 0;
+  const topUpAmount = existingLoan; // top-up equal to existing outstanding
+  const totalPrincipal = existingLoan + topUpAmount;
+  const annualRate = 0.18; // 18% p.a.
+  const r = annualRate / 12;
+  // Reducing balance EMI formula
+  const emi = totalPrincipal > 0
+    ? (totalPrincipal * r * Math.pow(1 + r, tenureNum)) / (Math.pow(1 + r, tenureNum) - 1)
+    : 0;
+  const totalPayable = emi * tenureNum;
+  const totalInterest = totalPayable - totalPrincipal;
+  const fmt = (n: number) => n.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+  const emiRounded = Math.round(emi);
+
   let scheduleHtml = "";
   try {
     const nextDate = new Date(customer.nextEmiDate || new Date().toISOString());
     for (let i = 0; i < tenureNum; i++) {
       const emiDate = new Date(nextDate);
       emiDate.setMonth(emiDate.getMonth() + i);
-      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN")}</td><td>₹ ${customer.emiAmount || "0"}</td></tr>`;
+      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN")}</td><td>₹ ${fmt(emiRounded)}</td></tr>`;
     }
   } catch { scheduleHtml = `<tr><td colspan='3'>Date format error.</td></tr>`; }
 
@@ -292,12 +308,17 @@ export function generateTopUpHtml(customer: CustomerDoc, otp: string): string {
           <tr><th>Particular</th><th>Details</th></tr>
           <tr><td class="k">Existing Loan Account No.</td><td class="v">${customer.oldAccountNumber}</td></tr>
           <tr><td class="k">Top-Up Loan Account No.</td><td class="v">${customer.newAccountNumber || "-"}</td></tr>
-          <tr><td class="k">Top-Up Amount Sanctioned</td><td class="v">₹ ${customer.pendingAmount || "0"}</td></tr>
-          <tr><td class="k">EMI Amount</td><td class="v">₹ ${customer.emiAmount || "0"}</td></tr>
-          <tr><td class="k">Tenure</td><td class="v">${tenureNum.toString().padStart(2, "0")} Months</td></tr>
+          <tr><td class="k">Existing Outstanding Loan</td><td class="v">₹ ${fmt(existingLoan)}</td></tr>
+          <tr><td class="k">Additional Top-Up Sanctioned</td><td class="v">₹ ${fmt(topUpAmount)}</td></tr>
+          <tr><td class="k"><strong>Combined Principal (Existing + Top-Up)</strong></td><td class="v"><strong>₹ ${fmt(totalPrincipal)}</strong></td></tr>
+          <tr><td class="k">Interest Rate</td><td class="v">${(annualRate * 100).toFixed(2)}% p.a. (reducing balance)</td></tr>
+          <tr><td class="k">Total Interest Payable</td><td class="v">₹ ${fmt(totalInterest)}</td></tr>
+          <tr><td class="k">Total Amount Repayable</td><td class="v">₹ ${fmt(totalPayable)}</td></tr>
+          <tr><td class="k">Tenure Chosen by Borrower</td><td class="v">${tenureNum.toString().padStart(2, "0")} Months</td></tr>
+          <tr><td class="k"><strong>Monthly EMI</strong></td><td class="v"><strong>₹ ${fmt(emiRounded)}</strong></td></tr>
           <tr><td class="k">First EMI Date</td><td class="v">${customer.nextEmiDate || "-"}</td></tr>
         </table>
-        <div class="note">Note: This top-up loan is issued over and above the existing loan facility, subject to the borrower's satisfactory repayment record.</div>
+        <div class="note">Note: The existing outstanding loan of ₹${fmt(existingLoan)} is combined with an equal top-up of ₹${fmt(topUpAmount)}. Interest at ${(annualRate * 100).toFixed(2)}% p.a. is applied on the combined principal of ₹${fmt(totalPrincipal)}, and the EMI is derived from the tenure of ${tenureNum} months selected by the borrower.</div>
       </div>
       <div class="page-num">Page 1 of 2</div>
     </div>
@@ -311,8 +332,9 @@ export function generateTopUpHtml(customer: CustomerDoc, otp: string): string {
       </table>
       <h2 class="section" style="text-align:left; text-decoration:underline; margin-top:24px;">Key Terms</h2>
       <ul class="terms">
-        <li>Borrower agrees to repay the top-up amount of <strong>₹${customer.pendingAmount || "0"}</strong> in <strong>${tenureNum}</strong> monthly EMIs.</li>
-        <li>The top-up loan runs alongside the existing loan; both must be serviced on time.</li>
+        <li>Borrower agrees to repay the combined principal of <strong>₹${fmt(totalPrincipal)}</strong> along with interest, in <strong>${tenureNum}</strong> monthly EMIs of <strong>₹${fmt(emiRounded)}</strong> each.</li>
+        <li>Interest is calculated at <strong>${(annualRate * 100).toFixed(2)}% p.a.</strong> on the combined outstanding (existing + top-up).</li>
+        <li>The top-up facility replaces the existing repayment schedule with a single consolidated EMI plan.</li>
         <li>Delay in payment will attract a <strong>penalty charge of 0.5% per day</strong> on the due amount.</li>
         <li>Repayment must be made directly to the lender's approved bank account.</li>
         <li>Lender reserves the right to recall the top-up facility in case of default.</li>
