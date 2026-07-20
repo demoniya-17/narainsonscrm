@@ -158,12 +158,22 @@ export const sendOtp = createServerFn({ method: "POST" })
       email: data.email, expires_at: expiresAt,
     });
     if (error) throw new Error(error.message);
+
+    let emailStatus: "sent" | "failed" = "sent";
+    let emailError: string | null = null;
+    try {
+      const { sendOtpEmail } = await import("./mailer.server");
+      await sendOtpEmail(data.email, otp, data.agreementType, (cust as { name: string }).name);
+    } catch (e) {
+      emailStatus = "failed";
+      emailError = e instanceof Error ? e.message : String(e);
+    }
     await context.supabase.from("email_logs").insert({
       customer_id: data.customerId, recipient_email: data.email, email_type: "OTP",
-      subject: `OTP for ${data.agreementType}`, status: "generated",
+      subject: `OTP for ${data.agreementType}`, status: emailStatus,
     });
-    // Return OTP inline so staff can share it with the customer
-    return { success: true, otp };
+    if (emailStatus === "failed") throw new Error(`Failed to send email: ${emailError}`);
+    return { success: true };
   });
 
 export const verifyOtp = createServerFn({ method: "POST" })
