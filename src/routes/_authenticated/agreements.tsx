@@ -34,9 +34,12 @@ function AgreementsPage() {
 
   const sendOtpMutation = useMutation({
     mutationFn: (v: { customerId: number; email: string; agreementType: string }) => sendOtpFn({ data: v }),
-    onSuccess: (_r, v) => {
+    onSuccess: (r, v) => {
       setSelectedId(v.customerId);
-      toast.success(`OTP sent to ${v.email}`);
+      toast.success(`OTP sent to ${v.email}`, {
+        description: r.otp ? `Admin copy: ${r.otp}` : undefined,
+        duration: 15000,
+      });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to send OTP"),
   });
