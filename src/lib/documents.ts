@@ -259,3 +259,73 @@ export function generateMoratoriumHtml(customer: CustomerDoc, otp: string): stri
     ${printButton("PRINT AGREEMENT")}
   </body></html>`;
 }
+
+export function generateTopUpHtml(customer: CustomerDoc, otp: string): string {
+  const dateStr = new Date().toLocaleDateString("en-IN");
+  const timeStr = new Date().toLocaleTimeString("en-IN");
+  const tenureNum = parseInt(customer.tenure || "12");
+  let scheduleHtml = "";
+  try {
+    const nextDate = new Date(customer.nextEmiDate || new Date().toISOString());
+    for (let i = 0; i < tenureNum; i++) {
+      const emiDate = new Date(nextDate);
+      emiDate.setMonth(emiDate.getMonth() + i);
+      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN")}</td><td>₹ ${customer.emiAmount || "0"}</td></tr>`;
+    }
+  } catch { scheduleHtml = `<tr><td colspan='3'>Date format error.</td></tr>`; }
+
+  return `<!DOCTYPE html><html><head><title>Top-Up Loan - ${customer.name}</title><style>${BASE_CSS}</style></head><body>
+    <div class="page">${watermark}
+      <div class="content">
+        <h1 class="doc-title">Loan Top-Up Agreement</h1>
+        <div class="title-rule"></div>
+        <h2 class="section">Between</h2>
+        <div class="party"><u>Lender</u>: <em>${COMPANY_NAME}</em></div>
+        <div class="party">Registered Office: ${COMPANY_ADDRESS}</div>
+        <div style="height:20px"></div>
+        <div class="party"><u>Borrower</u> &nbsp;&nbsp; <strong>${customer.name.toUpperCase()}</strong></div>
+        <div class="party"><strong>PAN</strong>: <strong>${customer.pan || "-"}</strong></div>
+        <div class="party"><strong>Address</strong>: <strong>${(customer.address || "-").toUpperCase()}</strong></div>
+        <div class="divider"></div>
+        <h2 class="section">Top-Up Loan Details</h2>
+        <table class="detail">
+          <tr><th>Particular</th><th>Details</th></tr>
+          <tr><td class="k">Existing Loan Account No.</td><td class="v">${customer.oldAccountNumber}</td></tr>
+          <tr><td class="k">Top-Up Loan Account No.</td><td class="v">${customer.newAccountNumber || "-"}</td></tr>
+          <tr><td class="k">Top-Up Amount Sanctioned</td><td class="v">₹ ${customer.pendingAmount || "0"}</td></tr>
+          <tr><td class="k">EMI Amount</td><td class="v">₹ ${customer.emiAmount || "0"}</td></tr>
+          <tr><td class="k">Tenure</td><td class="v">${tenureNum.toString().padStart(2, "0")} Months</td></tr>
+          <tr><td class="k">First EMI Date</td><td class="v">${customer.nextEmiDate || "-"}</td></tr>
+        </table>
+        <div class="note">Note: This top-up loan is issued over and above the existing loan facility, subject to the borrower's satisfactory repayment record.</div>
+      </div>
+      <div class="page-num">Page 1 of 2</div>
+    </div>
+
+    <div class="page">${watermark}<div class="content">
+      <h1 class="doc-title" style="font-size:32px;">EMI Repayment Schedule</h1>
+      <div class="title-rule"></div>
+      <table class="detail">
+        <tr><th>Installment No.</th><th>EMI Date</th><th>EMI Amount</th></tr>
+        ${scheduleHtml}
+      </table>
+      <h2 class="section" style="text-align:left; text-decoration:underline; margin-top:24px;">Key Terms</h2>
+      <ul class="terms">
+        <li>Borrower agrees to repay the top-up amount of <strong>₹${customer.pendingAmount || "0"}</strong> in <strong>${tenureNum}</strong> monthly EMIs.</li>
+        <li>The top-up loan runs alongside the existing loan; both must be serviced on time.</li>
+        <li>Delay in payment will attract a <strong>penalty charge of 0.5% per day</strong> on the due amount.</li>
+        <li>Repayment must be made directly to the lender's approved bank account.</li>
+        <li>Lender reserves the right to recall the top-up facility in case of default.</li>
+      </ul>
+      <div style="margin-top:18px;"><strong>Legal Clause</strong><br>This Agreement is governed by the laws of <strong>India</strong>, and any disputes shall fall under the <strong>jurisdiction of courts in Noida.</strong></div>
+      <div class="signatures">
+        <div class="sig-box">For ${COMPANY_NAME}<br><br><em>(Authorized Signatory – Digitally Signed)</em></div>
+        <div class="sig-box">For Borrower: <strong>${customer.name}</strong><br><em>(Digitally Signed)</em>
+          <div class="stamp">✔ DIGITALLY SIGNED VIA OTP<br>OTP: ${otp} | DATE: ${dateStr}<br>TIME: ${timeStr}</div>
+        </div>
+      </div>
+    </div><div class="page-num">Page 2 of 2</div></div>
+
+    ${printButton("PRINT AGREEMENT")}
+  </body></html>`;
+}
