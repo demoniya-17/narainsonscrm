@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { listCustomers, sendOtp, verifyOtp, generateNdc, generateRestructuring, generateMoratorium } from "@/lib/customers.functions";
+import { listCustomers, sendOtp, verifyOtp, generateNdc, generateRestructuring, generateMoratorium, generateTopUp } from "@/lib/customers.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Loader2, Mail, Copy } from "lucide-react";
+import { FileText, Loader2, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -15,13 +15,12 @@ export const Route = createFileRoute("/_authenticated/agreements")({
   component: AgreementsPage,
 });
 
-type AgreementType = "ndc" | "restructuring" | "moratorium";
+type AgreementType = "ndc" | "restructuring" | "moratorium" | "topup";
 
 function AgreementsPage() {
   const [tab, setTab] = useState("emi");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [otpValue, setOtpValue] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
 
   const listFn = useServerFn(listCustomers);
   const sendOtpFn = useServerFn(sendOtp);
@@ -29,17 +28,17 @@ function AgreementsPage() {
   const genNdc = useServerFn(generateNdc);
   const genRe = useServerFn(generateRestructuring);
   const genMora = useServerFn(generateMoratorium);
+  const genTop = useServerFn(generateTopUp);
 
   const { data: customers, isLoading, refetch } = useQuery({ queryKey: ["customers"], queryFn: () => listFn() });
 
   const sendOtpMutation = useMutation({
     mutationFn: (v: { customerId: number; email: string; agreementType: string }) => sendOtpFn({ data: v }),
-    onSuccess: (r, v) => {
+    onSuccess: (_r, v) => {
       setSelectedId(v.customerId);
-      setGeneratedOtp(r.otp);
-      toast.success("OTP generated");
+      toast.success(`OTP sent to ${v.email}`);
     },
-    onError: () => toast.error("Failed to generate OTP"),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to send OTP"),
   });
 
   const openDoc = (html: string) => {
@@ -50,7 +49,8 @@ function AgreementsPage() {
   const generateFor = (type: AgreementType, customerId: number, otp: string) =>
     type === "ndc" ? genNdc({ data: { customerId } })
     : type === "restructuring" ? genRe({ data: { customerId, otp } })
-    : genMora({ data: { customerId, otp } });
+    : type === "moratorium" ? genMora({ data: { customerId, otp } })
+    : genTop({ data: { customerId, otp } });
 
   const handleVerify = async (type: AgreementType) => {
     if (!selectedId || !otpValue) return toast.error("Enter OTP");
@@ -59,7 +59,7 @@ function AgreementsPage() {
       const result = await generateFor(type, selectedId, otpValue);
       openDoc(result.html);
       toast.success("Verified — agreement ready");
-      setSelectedId(null); setOtpValue(""); setGeneratedOtp(null);
+      setSelectedId(null); setOtpValue("");
       await refetch();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Verification failed");
@@ -78,11 +78,15 @@ function AgreementsPage() {
   const filter = (type: string) => (customers ?? []).filter(c =>
     type === "emi" ? c.status === "EMI" || c.status === "Restructuring"
     : type === "mora" ? c.status === "Moratorium"
+    : type === "topup" ? c.status === "TopUp" || c.status === "Top-Up" || c.status === "Top Up"
     : c.status === "Closed"
   );
 
   const agreementFor = (type: string): AgreementType =>
-    type === "emi" ? "restructuring" : type === "mora" ? "moratorium" : "ndc";
+    type === "emi" ? "restructuring"
+    : type === "mora" ? "moratorium"
+    : type === "topup" ? "topup"
+    : "ndc";
 
   const renderRows = (type: string) => {
     const list = filter(type);
@@ -118,12 +122,6 @@ function AgreementsPage() {
                     </Button>
                     {selectedId === c.id && (
                       <>
-                        {generatedOtp && (
-                          <div className="flex items-center gap-1.5 bg-accent/10 border border-accent/30 rounded-md px-2 py-1 text-xs anim-fade-in">
-                            <span className="font-mono font-bold text-accent">{generatedOtp}</span>
-                            <button onClick={() => { navigator.clipboard.writeText(generatedOtp); toast.success("Copied"); }} className="text-muted-foreground hover:text-accent"><Copy className="w-3 h-3" /></button>
-                          </div>
-                        )}
                         <Input value={otpValue} onChange={e => setOtpValue(e.target.value)} placeholder="OTP" maxLength={6} className="w-24 h-8" />
                         <Button size="sm" className="btn-gold" onClick={() => handleVerify(agreementFor(type))}>
                           <FileText className="w-3.5 h-3.5" />
@@ -145,17 +143,18 @@ function AgreementsPage() {
       <div className="hero-panel">
         <div className="container-lg py-10">
           <h1 className="text-3xl font-bold text-white anim-slide-up">Digital Agreements</h1>
-          <p className="text-blue-100/80 mt-2 anim-slide-up" style={{ animationDelay: "80ms" }}>Manage EMI, Moratorium, and NDC agreements with OTP-signed workflows</p>
+          <p className="text-blue-100/80 mt-2 anim-slide-up" style={{ animationDelay: "80ms" }}>Manage EMI, Moratorium, Top-Up, and NDC agreements with OTP-signed workflows</p>
         </div>
       </div>
       <div className="container-lg py-8">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid grid-cols-3 mb-6 glass-panel p-1 rounded-lg">
+          <TabsList className="grid grid-cols-4 mb-6 glass-panel p-1 rounded-lg">
             <TabsTrigger value="emi" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground rounded-md">EMI &amp; Restructuring</TabsTrigger>
             <TabsTrigger value="mora" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground rounded-md">Moratorium</TabsTrigger>
+            <TabsTrigger value="topup" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground rounded-md">Top-Up</TabsTrigger>
             <TabsTrigger value="ndc" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground rounded-md">Closed / NDC</TabsTrigger>
           </TabsList>
-          {(["emi", "mora", "ndc"] as const).map(v => (
+          {(["emi", "mora", "topup", "ndc"] as const).map(v => (
             <TabsContent key={v} value={v}>
               <Card className="glass-panel overflow-hidden">
                 {isLoading ? <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-accent" /></div> : renderRows(v)}
@@ -167,10 +166,10 @@ function AgreementsPage() {
         <Card className="glass-panel p-6 mt-8 anim-slide-up">
           <h3 className="text-lg font-semibold text-accent mb-3">How Digital Signing Works</h3>
           <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-            <li>Click "Send OTP" — a 6-digit code is generated and logged.</li>
-            <li>Share the code with the customer for verification.</li>
-            <li>Enter the OTP and click the document icon to render the signed agreement.</li>
-            <li>Print or download from the browser print dialog.</li>
+            <li>Click "Send OTP" — a 6-digit code is emailed directly to the customer's registered email.</li>
+            <li>Customer receives the OTP in their inbox from wecare.narainsons@gmail.com.</li>
+            <li>Enter the OTP the customer shares back with you and click the document icon.</li>
+            <li>Signed agreement opens in a new tab — print or download from the browser dialog.</li>
           </ol>
         </Card>
       </div>
