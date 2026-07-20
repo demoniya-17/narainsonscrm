@@ -246,3 +246,11 @@ export const generateMoratorium = createServerFn({ method: "POST" })
     const c = await loadCustomer(context, data.customerId);
     return { html: generateMoratoriumHtml(c, data.otp), success: true };
   });
+
+export const generateTopUp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ customerId: z.number(), otp: z.string() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const c = await loadCustomer(context, data.customerId);
+    return { html: generateTopUpHtml(c, data.otp), success: true };
+  });
