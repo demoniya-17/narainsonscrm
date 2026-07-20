@@ -165,6 +165,7 @@ function CustomersPage() {
                   <SelectItem value="EMI">EMI</SelectItem>
                   <SelectItem value="Restructuring">Restructuring</SelectItem>
                   <SelectItem value="Moratorium">Moratorium</SelectItem>
+                  <SelectItem value="TopUp">Top-Up</SelectItem>
                   <SelectItem value="Closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
