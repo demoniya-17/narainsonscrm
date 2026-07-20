@@ -5,6 +5,7 @@ import {
   generateNdcHtml,
   generateRestructuringHtml,
   generateMoratoriumHtml,
+  generateTopUpHtml,
   type CustomerDoc,
 } from "./documents";
 
