@@ -173,7 +173,7 @@ export const sendOtp = createServerFn({ method: "POST" })
       subject: `OTP for ${data.agreementType}`, status: emailStatus,
     });
     if (emailStatus === "failed") throw new Error(`Failed to send email: ${emailError}`);
-    return { success: true };
+    return { success: true, otp };
   });
 
 export const verifyOtp = createServerFn({ method: "POST" })
