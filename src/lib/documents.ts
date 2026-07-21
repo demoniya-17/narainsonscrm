@@ -290,7 +290,7 @@ export function generateTopUpHtml(customer: CustomerDoc, otp: string): string {
     for (let i = 0; i < tenureNum; i++) {
       const emiDate = new Date(nextDate);
       emiDate.setMonth(emiDate.getMonth() + i);
-      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN")}</td><td>₹ ${fmt(emiRounded)}</td></tr>`;
+      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN", IST_OPTS)}</td><td>₹ ${fmt(emiRounded)}</td></tr>`;
     }
   } catch { scheduleHtml = `<tr><td colspan='3'>Date format error.</td></tr>`; }
 
