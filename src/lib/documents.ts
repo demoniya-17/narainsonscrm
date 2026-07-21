@@ -80,8 +80,12 @@ const printButton = (label: string) => `<div class="no-print" style="text-align:
 
 const watermark = `<div class="watermark">NARAINSONS</div>`;
 
+const IST_OPTS = { timeZone: "Asia/Kolkata" } as const;
+const istDate = () => new Date().toLocaleDateString("en-IN", IST_OPTS);
+const istTime = () => new Date().toLocaleTimeString("en-IN", { ...IST_OPTS, hour12: true });
+
 export function generateNdcHtml(customer: CustomerDoc): string {
-  const dateStr = new Date().toLocaleDateString("en-GB").replace(/\//g, "-");
+  const dateStr = new Date().toLocaleDateString("en-GB", IST_OPTS).replace(/\//g, "-");
   return `<!DOCTYPE html><html><head><title>NDC - ${customer.name}</title><style>${NDC_CSS}</style></head><body>
     <div class="page">
       <div class="content">
