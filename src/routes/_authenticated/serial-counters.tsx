@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/serial-counters")({
   component: SerialCountersPage,
 });
 
-type CounterType = "NDC" | "RESTRUCTURING" | "MORATORIUM";
+type CounterType = "NDC" | "RESTRUCTURING" | "MORATORIUM" | "TOPUP";
 
 function SerialCountersPage() {
   const qc = useQueryClient();
@@ -39,6 +39,7 @@ function SerialCountersPage() {
     { type: "NDC", title: "NDC Counter", desc: "No Due Certificate serial number", value: counters?.ndc ?? "-" },
     { type: "RESTRUCTURING", title: "Restructuring Counter", desc: "Loan Restructuring Agreement serial number", value: counters?.restructuring ?? "-" },
     { type: "MORATORIUM", title: "Moratorium Counter", desc: "Loan Moratorium Agreement serial number", value: counters?.moratorium ?? "-" },
+    { type: "TOPUP", title: "Top-Up Counter", desc: "Loan Top-Up Agreement serial number", value: counters?.topup ?? "-" },
   ];
 
   return (
@@ -85,7 +86,7 @@ function SerialCountersPage() {
         <DialogContent className="glass-panel">
           <DialogHeader><DialogTitle className="gold-text text-2xl">Edit Serial Counter</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div><label className="text-xs uppercase tracking-wider text-muted-foreground">Counter Type</label><p className="mt-1">{editing === "NDC" ? "No Due Certificate" : editing === "RESTRUCTURING" ? "Loan Restructuring" : "Loan Moratorium"}</p></div>
+            <div><label className="text-xs uppercase tracking-wider text-muted-foreground">Counter Type</label><p className="mt-1">{editing === "NDC" ? "No Due Certificate" : editing === "RESTRUCTURING" ? "Loan Restructuring" : editing === "MORATORIUM" ? "Loan Moratorium" : "Loan Top-Up"}</p></div>
             <div><label className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5 block">New Value</label><Input value={value} onChange={e => setValue(e.target.value)} /></div>
             <div className="flex gap-3">
               <Button onClick={() => { if (!editing || !value) return toast.error("Enter a value"); mut.mutate({ counterType: editing, newValue: value }); }} className="btn-gold flex-1" disabled={mut.isPending}>

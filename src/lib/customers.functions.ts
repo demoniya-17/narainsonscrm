@@ -200,13 +200,14 @@ export const getSerialCounters = createServerFn({ method: "GET" })
       ndc: map.get("NDC") ?? "-",
       restructuring: map.get("RESTRUCTURING") ?? "-",
       moratorium: map.get("MORATORIUM") ?? "-",
+      topup: map.get("TOPUP") ?? "-",
     };
   });
 
 export const updateSerialCounter = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
-    counterType: z.enum(["NDC", "RESTRUCTURING", "MORATORIUM"]),
+    counterType: z.enum(["NDC", "RESTRUCTURING", "MORATORIUM", "TOPUP"]),
     newValue: z.string().min(1),
   }).parse(d))
   .handler(async ({ data, context }) => {
