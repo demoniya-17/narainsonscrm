@@ -265,8 +265,8 @@ export function generateMoratoriumHtml(customer: CustomerDoc, otp: string): stri
 }
 
 export function generateTopUpHtml(customer: CustomerDoc, otp: string): string {
-  const dateStr = new Date().toLocaleDateString("en-IN");
-  const timeStr = new Date().toLocaleTimeString("en-IN");
+  const dateStr = istDate();
+  const timeStr = istTime();
   const tenureNum = Math.max(1, parseInt(customer.tenure || "12"));
 
   // Top-Up logic: existing loan + equal top-up = combined principal, interest applied on total.
