@@ -67,7 +67,7 @@ function DashboardPage() {
         </div>
       </div>
       <div className="container-lg py-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-12">
           {cards.map(({ label, value, icon: Icon, color }, i) => (
             <Card key={label} className="stat-card anim-count-up" style={{ animationDelay: `${i * 90}ms` }}>
               <div className="flex items-start justify-between">
