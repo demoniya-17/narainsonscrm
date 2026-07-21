@@ -80,8 +80,12 @@ const printButton = (label: string) => `<div class="no-print" style="text-align:
 
 const watermark = `<div class="watermark">NARAINSONS</div>`;
 
+const IST_OPTS = { timeZone: "Asia/Kolkata" } as const;
+const istDate = () => new Date().toLocaleDateString("en-IN", IST_OPTS);
+const istTime = () => new Date().toLocaleTimeString("en-IN", { ...IST_OPTS, hour12: true });
+
 export function generateNdcHtml(customer: CustomerDoc): string {
-  const dateStr = new Date().toLocaleDateString("en-GB").replace(/\//g, "-");
+  const dateStr = new Date().toLocaleDateString("en-GB", IST_OPTS).replace(/\//g, "-");
   return `<!DOCTYPE html><html><head><title>NDC - ${customer.name}</title><style>${NDC_CSS}</style></head><body>
     <div class="page">
       <div class="content">
@@ -122,8 +126,8 @@ export function generateNdcHtml(customer: CustomerDoc): string {
 }
 
 export function generateRestructuringHtml(customer: CustomerDoc, otp: string): string {
-  const dateStr = new Date().toLocaleDateString("en-IN");
-  const timeStr = new Date().toLocaleTimeString("en-IN");
+  const dateStr = istDate();
+  const timeStr = istTime();
   const tenureNum = parseInt(customer.tenure || "11");
   let scheduleHtml = "";
   try {
@@ -131,7 +135,7 @@ export function generateRestructuringHtml(customer: CustomerDoc, otp: string): s
     for (let i = 0; i < tenureNum; i++) {
       const emiDate = new Date(nextDate);
       emiDate.setMonth(emiDate.getMonth() + i);
-      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN")}</td><td>₹ ${customer.emiAmount || "0"}</td></tr>`;
+      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN", IST_OPTS)}</td><td>₹ ${customer.emiAmount || "0"}</td></tr>`;
     }
   } catch { scheduleHtml = `<tr><td colspan='3'>Date format error.</td></tr>`; }
 
@@ -199,8 +203,8 @@ export function generateRestructuringHtml(customer: CustomerDoc, otp: string): s
 }
 
 export function generateMoratoriumHtml(customer: CustomerDoc, otp: string): string {
-  const dateStr = new Date().toLocaleDateString("en-IN");
-  const timeStr = new Date().toLocaleTimeString("en-IN");
+  const dateStr = istDate();
+  const timeStr = istTime();
   const tenureNum = parseInt(customer.tenure || "11");
   const dateRow = customer.moratiumStartDate && customer.moratiumEndDate
     ? `<tr><td class="k">Moratorium Start / End</td><td class="v">${customer.moratiumStartDate} → ${customer.moratiumEndDate}</td></tr>` : "";
@@ -261,8 +265,8 @@ export function generateMoratoriumHtml(customer: CustomerDoc, otp: string): stri
 }
 
 export function generateTopUpHtml(customer: CustomerDoc, otp: string): string {
-  const dateStr = new Date().toLocaleDateString("en-IN");
-  const timeStr = new Date().toLocaleTimeString("en-IN");
+  const dateStr = istDate();
+  const timeStr = istTime();
   const tenureNum = Math.max(1, parseInt(customer.tenure || "12"));
 
   // Top-Up logic: existing loan + equal top-up = combined principal, interest applied on total.
@@ -286,7 +290,7 @@ export function generateTopUpHtml(customer: CustomerDoc, otp: string): string {
     for (let i = 0; i < tenureNum; i++) {
       const emiDate = new Date(nextDate);
       emiDate.setMonth(emiDate.getMonth() + i);
-      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN")}</td><td>₹ ${fmt(emiRounded)}</td></tr>`;
+      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN", IST_OPTS)}</td><td>₹ ${fmt(emiRounded)}</td></tr>`;
     }
   } catch { scheduleHtml = `<tr><td colspan='3'>Date format error.</td></tr>`; }
 
