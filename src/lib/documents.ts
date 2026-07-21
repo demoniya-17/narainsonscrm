@@ -203,8 +203,8 @@ export function generateRestructuringHtml(customer: CustomerDoc, otp: string): s
 }
 
 export function generateMoratoriumHtml(customer: CustomerDoc, otp: string): string {
-  const dateStr = new Date().toLocaleDateString("en-IN");
-  const timeStr = new Date().toLocaleTimeString("en-IN");
+  const dateStr = istDate();
+  const timeStr = istTime();
   const tenureNum = parseInt(customer.tenure || "11");
   const dateRow = customer.moratiumStartDate && customer.moratiumEndDate
     ? `<tr><td class="k">Moratorium Start / End</td><td class="v">${customer.moratiumStartDate} → ${customer.moratiumEndDate}</td></tr>` : "";
