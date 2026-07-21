@@ -126,8 +126,8 @@ export function generateNdcHtml(customer: CustomerDoc): string {
 }
 
 export function generateRestructuringHtml(customer: CustomerDoc, otp: string): string {
-  const dateStr = new Date().toLocaleDateString("en-IN");
-  const timeStr = new Date().toLocaleTimeString("en-IN");
+  const dateStr = istDate();
+  const timeStr = istTime();
   const tenureNum = parseInt(customer.tenure || "11");
   let scheduleHtml = "";
   try {
