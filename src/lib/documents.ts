@@ -135,7 +135,7 @@ export function generateRestructuringHtml(customer: CustomerDoc, otp: string): s
     for (let i = 0; i < tenureNum; i++) {
       const emiDate = new Date(nextDate);
       emiDate.setMonth(emiDate.getMonth() + i);
-      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN")}</td><td>₹ ${customer.emiAmount || "0"}</td></tr>`;
+      scheduleHtml += `<tr><td>${i + 1}</td><td>${emiDate.toLocaleDateString("en-IN", IST_OPTS)}</td><td>₹ ${customer.emiAmount || "0"}</td></tr>`;
     }
   } catch { scheduleHtml = `<tr><td colspan='3'>Date format error.</td></tr>`; }
 
