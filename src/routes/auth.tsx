@@ -53,15 +53,17 @@ function AuthPage() {
 
   const handleGoogle = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin }
+    const { lovable } = await import("@/integrations/lovable/index");
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
-    if (error) {
+    if (result.error) {
       toast.error("Google sign-in failed");
       setLoading(false);
+      return;
     }
-    // On success, Supabase redirects the browser to Google — no further code runs here.
+    if (result.redirected) return;
+    window.location.href = "/dashboard";
   };
 
   return (
