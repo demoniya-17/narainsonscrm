@@ -170,7 +170,7 @@ function AgreementsPage() {
           <h3 className="text-lg font-semibold text-accent mb-3">How Digital Signing Works</h3>
           <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
             <li>Click "Send OTP" — a 6-digit code is emailed directly to the customer's registered email.</li>
-            <li>Customer receives the OTP in their inbox from wecare.narainsons@gmail.com.</li>
+            <li>Customer receives the OTP in their inbox from agreements.narainsons@gmail.com.</li>
             <li>Enter the OTP the customer shares back with you and click the document icon.</li>
             <li>Signed agreement opens in a new tab — print or download from the browser dialog.</li>
           </ol>
