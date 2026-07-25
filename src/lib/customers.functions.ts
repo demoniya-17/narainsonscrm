@@ -256,3 +256,24 @@ export const generateTopUp = createServerFn({ method: "POST" })
     const c = await loadCustomer(context, data.customerId);
     return { html: generateTopUpHtml(c, data.otp), success: true };
   });
+
+export const generateLoanAgreement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    customerId: z.number(),
+    loanAccountNumber: z.string().min(1).max(100),
+    amountPayable: z.string().min(1).max(50),
+    agreementDate: z.string().min(1).max(30),
+    processingFee: z.string().min(1).max(50),
+    signedDate: z.string().min(1).max(30),
+    signedTime: z.string().min(1).max(30),
+    tenureDays: z.string().optional(),
+    purpose: z.string().optional(),
+    interestRate: z.string().optional(),
+    financeCharge: z.string().optional(),
+    disbursedAmount: z.string().optional(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const c = await loadCustomer(context, data.customerId);
+    return { html: generateLoanAgreementHtml(c, data), success: true };
+  });
