@@ -41,6 +41,7 @@ function DashboardPage() {
     emi: customers?.filter(c => c.status?.includes("EMI") || c.status?.includes("Restructuring")).length ?? 0,
     mora: customers?.filter(c => c.status?.includes("Moratorium")).length ?? 0,
     topup: customers?.filter(c => c.status?.includes("TopUp") || c.status?.includes("Top-Up") || c.status?.includes("Top Up")).length ?? 0,
+    loan: customers?.filter(c => c.status?.includes("Loan")).length ?? 0,
     closed: customers?.filter(c => c.status?.includes("Closed")).length ?? 0,
   };
 
@@ -49,6 +50,7 @@ function DashboardPage() {
     { label: "EMI & Restructuring", value: stats.emi, icon: TrendingUp, color: "text-blue-400" },
     { label: "Moratorium", value: stats.mora, icon: BarChart3, color: "text-purple-400" },
     { label: "Top-Up", value: stats.topup, icon: TrendingUp, color: "text-amber-400" },
+    { label: "Loan Agreement", value: stats.loan, icon: FileText, color: "text-cyan-400" },
     { label: "Closed / NDC", value: stats.closed, icon: FileText, color: "text-emerald-400" },
   ];
 
