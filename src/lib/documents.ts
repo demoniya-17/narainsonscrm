@@ -355,3 +355,105 @@ export function generateTopUpHtml(customer: CustomerDoc, otp: string): string {
     ${printButton("PRINT AGREEMENT")}
   </body></html>`;
 }
+
+export type LoanAgreementOpts = {
+  loanAccountNumber: string;
+  amountPayable: string;
+  agreementDate: string;   // e.g. 17/12/2020 - displayed as-is
+  processingFee: string;
+  signedDate: string;      // admin-controlled digital signature date
+  signedTime: string;      // admin-controlled digital signature time
+  tenureDays?: string;
+  purpose?: string;
+  interestRate?: string;
+  financeCharge?: string;
+  disbursedAmount?: string;
+};
+
+export function generateLoanAgreementHtml(customer: CustomerDoc, opts: LoanAgreementOpts): string {
+  const {
+    loanAccountNumber, amountPayable, agreementDate, processingFee,
+    signedDate, signedTime,
+    tenureDays = "7", purpose = "Personal Expense",
+    interestRate = "4", financeCharge = "-", disbursedAmount = "-",
+  } = opts;
+  const nameUpper = customer.name.toUpperCase();
+  return `<!DOCTYPE html><html><head><title>Loan Agreement - ${customer.name}</title><style>${BASE_CSS}
+    .la-body { font-size: 14.5px; line-height: 1.75; }
+    .la-body p { margin: 10px 0; }
+    .la-body h3 { color: ${BRAND_DARK}; margin: 18px 0 6px; font-size: 16px; }
+    .sig-line { margin-top: 26px; }
+    .sig-line .lbl { color:${BRAND_BLUE}; font-weight:800; letter-spacing:0.5px; }
+  </style></head><body>
+    <div class="page">${watermark}
+      <div class="content la-body">
+        <h1 class="doc-title">LOAN AGREEMENT</h1>
+        <div class="title-rule"></div>
+        <p style="text-align:center;">This Loan Agreement is executed on date <strong>${agreementDate}</strong></p>
+        <h2 class="section">Between</h2>
+        <p><strong>M/s- NARAINSONS INVESTMENTS FINANCE AND CONSULTANCY PRIVATE LIMITED</strong>, a Company incorporated under the Companies Act 2013 having its registered office at ${COMPANY_ADDRESS}, hereinafter referred to as the <em>Lender</em> which expression unless repugnant to the context shall mean and includes its legal representatives, assignee, nominee(s) and administrator;</p>
+        <h2 class="section">And</h2>
+        <p><strong>[${nameUpper}]</strong> (PAN : [${customer.pan || "-"}]), ${customer.address || "-"}, hereinafter referred to as the <em>Borrower</em>. Whereas at the request of the Borrower, the Lender has agreed to grant a loan not exceeding a sum of <strong>INR ${amountPayable}</strong> to the Borrower for a period of <strong>${tenureDays} days</strong> on terms and conditions hereinafter contained.</p>
+
+        <h3>WHEREAS</h3>
+        <p>1. The Lender is engaged in the business of providing finance to a wide range of customers.</p>
+        <p>2. The Borrower is a Major/ Firm / Body Corporate, competent to execute this Agreement and there are no suits, actions or proceedings pending which might affect the performance hereunder.</p>
+
+        <h3>NOW, THEREFORE, THE PARTIES HEREBY AGREE AS UNDER:</h3>
+        <p><strong>1. Promise to Pay —</strong> The Borrower promises to repay Lender the sum of <strong>${amountPayable}</strong>, along with interest and other charges stated below, within <strong>${tenureDays} days</strong> from today.</p>
+        <p><strong>2. Employment Status —</strong> The Borrower must be in permanent employment and must not be self-employed.</p>
+        <p><strong>3. Credit Checks —</strong> The Lender reserves the right to carry out checks on Borrower's status through credit references and fraud prevention agencies.</p>
+        <p><strong>4. Term of the Loan —</strong> The maximum loan period is ${tenureDays} days from the date the loan is accepted.</p>
+
+        <h3>5. Breakdown of Principal Loan Amount</h3>
+        <table class="detail">
+          <tr><td class="k">Amount of Loan</td><td class="v">₹ ${amountPayable}</td></tr>
+          <tr><td class="k">Finance Charge</td><td class="v">₹ ${financeCharge}</td></tr>
+          <tr><td class="k">Loan Agreement Processing Fee</td><td class="v">₹ ${processingFee}</td></tr>
+          <tr><td class="k">Loan Disbursed Amount</td><td class="v">₹ ${disbursedAmount}</td></tr>
+        </table>
+      </div>
+      <div class="page-num">Page 1 of 2</div>
+    </div>
+
+    <div class="page">${watermark}
+      <div class="content la-body">
+        <p><strong>6. Rate of Interest —</strong> The Borrower shall pay interest on the principal amount of the Loan at the rate of <strong>${interestRate}% per month</strong>, calculated on a simple interest basis. The rate may be revised as per the Board-approved Interest Rate Policy.</p>
+        <p><strong>7. Disbursement —</strong> The proceeds of the loan will be paid over to the Borrower at the discretion of the Lender.</p>
+        <p><strong>8. Repayment —</strong> Loan repayments will be made directly to the Lender's Bank Account or other approved method.</p>
+        <p><strong>9. Penal Charges —</strong> If the loan amount is not repaid within the stipulated repayment period, the Borrower shall be liable to pay a penal charge in addition to the applicable interest until the outstanding dues are fully paid.</p>
+        <p><strong>10. Default —</strong> The Borrower shall be deemed to be in default upon failure to make payment on the due date. Additional default interest at <strong>3% per month (Simple Interest)</strong> shall apply on overdue amounts. Legal proceedings, if any, shall lie at Noida.</p>
+        <p><strong>11. Amendment —</strong> The Loan Agreement may be amended with consent of both parties, notified in writing and signed by authorized individuals.</p>
+        <p><strong>12. Force Majeure / Governing Law —</strong> This Agreement shall be construed and governed by the laws of India and courts of law at Noida shall have exclusive jurisdiction over disputes.</p>
+
+        <div class="sig-line">
+          <div class="lbl">LENDER</div>
+          <p><em>Digitally Signed by NARAINSONS THROUGH CASHTM APP ON DATE ${signedDate}</em><br>Authorized Signature<br><strong>M/s- NARAINSONS INVESTMENTS FINANCE AND CONSULTANCY PRIVATE LIMITED</strong><br>Legal Name and Title</p>
+        </div>
+
+        <div class="sig-line">
+          <div class="lbl">BORROWER</div>
+          <p><em>Digitally Signed by ${nameUpper} ${signedDate}<br>TIME- ${signedTime}</em><br>Authorized Signature<br><strong>${nameUpper}</strong><br>Legal Name and Title</p>
+          <div class="stamp" style="max-width:340px;">✔ DIGITALLY SIGNED<br>DATE: ${signedDate} &nbsp;|&nbsp; TIME: ${signedTime}</div>
+        </div>
+
+        <h2 class="section" style="margin-top:30px;">SCHEDULE 1</h2>
+        <table class="detail">
+          <tr><td class="k">Loan Agreement No.</td><td class="v">${loanAccountNumber}</td></tr>
+          <tr><td class="k">Type of Loan</td><td class="v">Payday Loan</td></tr>
+          <tr><td class="k">Name of the Lender</td><td class="v">${COMPANY_NAME}</td></tr>
+          <tr><td class="k">Address of the Lender</td><td class="v">${COMPANY_ADDRESS}</td></tr>
+          <tr><td class="k">Name of the Borrower</td><td class="v">${nameUpper}</td></tr>
+          <tr><td class="k">Address of the Borrower</td><td class="v">${customer.address || "-"}</td></tr>
+          <tr><td class="k">Purpose of Loan</td><td class="v">${purpose}</td></tr>
+          <tr><td class="k">Loan Amount</td><td class="v">₹ ${amountPayable}</td></tr>
+          <tr><td class="k">Processing Fee</td><td class="v">₹ ${processingFee}</td></tr>
+          <tr><td class="k">Agreement Date</td><td class="v">${agreementDate}</td></tr>
+        </table>
+        <p style="text-align:right; margin-top:20px;"><em>Digitally Signed by ${nameUpper}<br>ON ${signedDate} TIME- ${signedTime}</em></p>
+      </div>
+      <div class="page-num">Page 2 of 2</div>
+    </div>
+    ${printButton("PRINT LOAN AGREEMENT")}
+  </body></html>`;
+}
