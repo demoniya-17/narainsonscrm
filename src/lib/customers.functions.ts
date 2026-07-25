@@ -6,6 +6,7 @@ import {
   generateRestructuringHtml,
   generateMoratoriumHtml,
   generateTopUpHtml,
+  generateLoanAgreementHtml,
   type CustomerDoc,
 } from "./documents";
 
